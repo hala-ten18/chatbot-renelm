@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Reporting Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 🎨 NEW: Company Color Palette --- */
+        :root {
+            --primary-color: #0c556c;
+            --primary-light: #EAF0F2;
+            --primary-hover: #20374d;
+            --accent-color: #eaa721;
+            --background-color: #F8F9FA;
+            --card-background: #ffffff;
+            --text-color-light: #8A92A6;
+            --text-color-dark: #20374d;
+            --border-color: #E2E8F0;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --border-radius: 12px;
+        }
+
+        /* --- General Body & Typography Styling --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color-dark);
+            font-size: 14px;
+        }
+
+        /* --- Header Redesign --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-background);
+            color: var(--text-color-dark);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 20px;
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        header h1 i {
+            color: var(--primary-color);
+        }
+
+        header .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeframe-controls .btn-timeframe {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color-light);
+            font-weight: 500;
+            padding: 6px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .timeframe-controls .btn-timeframe.active, 
+        .timeframe-controls .btn-timeframe:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+
+        input[type=date], .date-selector {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color-dark);
+        }
+
+        header .controls button {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        header .controls button:hover {
+            background-color: var(--primary-hover);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- Restyled Tabs --- */
+        .tabs {
+            display: flex;
+            padding: 0 1.5rem;
+            margin-top: 1rem;
+            gap: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 0;
+            cursor: pointer;
+            color: var(--text-color-light);
+            font-weight: 500;
+            position: relative;
+            border-bottom: 3px solid transparent;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--text-color-dark);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* --- Content Layout Grids --- */
+        .content {
+            display: none;
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+        .content.active {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* --- Section Card Redesign --- */
+        .section {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-color-dark);
+        }
+        .section-header h2 i {
+            color: var(--primary-color);
+        }
+        
+        .export-btn {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .export-btn:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .export-btn i {
+            margin-right: 5px;
+        }
+
+
+        .grid-span-1 { grid-column: span 1; }
+        .grid-span-2 { grid-column: span 2; }
+        .grid-span-3 { grid-column: span 3; }
+        .grid-span-4 { grid-column: span 4; }
+
+        /* --- Redesigned KPI Cards --- */
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-container {
+          display: flex;
+          justify-content: space-between; /* cards spread evenly in one row */
+          align-items: flex-start;
+          gap: 10px; /* spacing between cards */
+        }
+        
+        .kpi-card {
+          flex: 1;               /* equal width for all cards */
+          max-width: 160px;      /* shrink width so all fit */
+          padding: 12px;
+          background: #fff;
+          border-radius: 10px;
+          text-align: center;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          border: 1px solid var(--border-color);
+        }
+        
+        .kpi-card h3 {
+          font-size: 13px;       /* smaller text */
+          margin: 4px 0;
+          white-space: nowrap;   /* prevent wrapping */
+          color: var(--text-color-light);
+          font-weight: 500;
+        }
+        
+        .kpi-card p {
+          font-size: 16px;       /* slightly smaller */
+          font-weight: bold;
+          margin: 0;
+          color: var(--text-color-dark);
+        }
+
+        .kpi-header .export-btn {
+          margin-left: auto;     /* push button to the right */
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .kpi, .insight-kpi {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--card-background);
+        }
+        
+        .insight-kpi {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .kpi-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .kpi-content span, .insight-kpi-title {
+            font-size: 14px;
+            color: var(--text-color-light);
+            margin: 0;
+        }
+        .kpi-content strong {
+             font-size: 22px;
+        }
+        .insight-kpi-value {
+             font-size: 28px;
+        }
+
+        .kpi-content strong, .insight-kpi-value {
+            display: block;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--text-color-dark);
+        }
+        
+        .insight-kpi-sentiment-breakdown {
+            display: flex;
+            gap: 5rem; /* INCREASED SPACING */
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+        }
+        .sentiment {
+            font-size: 28px; /* INCREASED FONT SIZE */
+            font-weight: 600; 
+        }
+        .sentiment span {
+            font-size: 15px; /* INCREASED FONT SIZE */
+            color: var(--text-color-light);
+            display: block;
+            font-weight: 500;
+        }
+        .lang-breakdown {
+            display: block;
+            font-size: 12px;
+            color: var(--text-color-light);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+
+        /* --- Table Redesign --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: none;
+            font-weight: 600;
+            color: var(--text-color-light);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .channel-header-row td {
+            background-color: var(--primary-light);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .insight-table {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .insight-table li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .insight-table li:last-child {
+            border-bottom: none;
+        }
+         .insight-table li .value {
+            font-weight: 600;
+         }
+        .insight-table li .sub-list {
+            list-style: none;
+            padding: 5px 0 0 15px;
+            margin: 0;
+            width: 100%;
+        }
+        .insight-table .sub-list li {
+            font-size: 13px;
+            color: var(--text-color-light);
+            border: none;
+            padding: 4px 0;
+        }
+        .insight-table .sub-list .value {
+            color: var(--text-color-dark);
+        }
+
+        /* --- Chart Styling --- */
+        .chart-container {
+          position: relative;
+          width: 90%;
+          max-width: 800px;
+          height: 400px;
+          margin: auto;
+        }
+        
+        .chart-table-container {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            width: 100%;
+            flex-grow: 1;
+        }
+        .table-container {
+            flex-basis: 50%;
+        }
+        #sessionsBreakdownTableContainer {
+             flex-basis: 100%;
+        }
+
+
+        /* --- NEW INSIGHTS STYLES --- */
+        #sentiments-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .sentiment-content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+        }
+
+        .total-sentiment-container {
+            text-align: center;
+        }
+
+        .concurrent-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .concurrent-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .concurrent-row:first-child {
+            padding-top: 0;
+        }
+
+        .concurrent-left {
+            flex-basis: 40%;
+        }
+        .concurrent-left span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .concurrent-left strong {
+            display: block;
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .concurrent-icons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            color: var(--text-color-light);
+        }
+        .concurrent-right {
+            flex-basis: 55%;
+        }
+        .concurrent-right .sub-list {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+        .concurrent-right .sub-list li {
+            justify-content: space-between;
+            padding: 2px 0 !important;
+        }
+
+        .equal-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        .pagination-btn {
+            background: var(--primary-light);
+            border: none;
+            color: var(--primary-color);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .pagination-btn:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 1200px) {
+            .content.active {
+                grid-template-columns: repeat(2, 1fr);
+            }
+             .grid-span-4 { grid-column: span 2; }
+             .equal-charts-grid {
+                  grid-template-columns: 1fr;
+             }
+        }
+        @media (max-width: 992px) {
+            .grid-span-3 { grid-column: span 2; }
+             .chart-table-container {
+                 flex-direction: column;
+             }
+        }
+        @media (max-width: 768px) {
+            .content.active {
+                grid-template-columns: 1fr;
+            }
+            .grid-span-2, .grid-span-3, .grid-span-4 {
+                grid-column: span 1;
+            }
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            header .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .kpi-grid {
+                 grid-template-columns: 1fr;
+            }
+            .sentiment-content-wrapper {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            .tabs {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fa-solid fa-robot"></i> Chatbot Dashboard</h1>
+        <div class="controls">
+            <div class="timeframe-controls">
+                <button class="btn-timeframe active">24H</button>
+                <button class="btn-timeframe">Week</button>
+                <button class="btn-timeframe">Month</button>
+                <button class="btn-timeframe">12 Months</button>
+            </div>
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button onclick="exportCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showTab(event, 'overview')">Overview</div>
+        <div class="tab" onclick="showTab(event, 'performance')">Performance</div>
+        <div class="tab" onclick="showTab(event, 'customer')">Customer Experience</div>
+        <div class="tab" onclick="showTab(event, 'quality')">Bot Health & Quality</div>
+        <div class="tab" onclick="showTab(event, 'insights')">Conversation Analytics</div>
+    </div>
+
+    <div id="overview" class="content">
+        <div class="section grid-span-4">
+            <div class="kpi-header">
+                <h2><i class="fa-solid fa-chart-simple"></i> Key Performance Indicators</h2>
+                <button class="export-btn" onclick="exportSectionCSV('kpis')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="kpi-container">
+              <div class="kpi-card">
+                <h3>Total Users</h3>
+                <p>10,250</p>
+              </div>
+              <div class="kpi-card">
+                <h3>Total Sessions</h3>
+                <p>15,600</p>
+              </div>
+              <div class="kpi-card">
+                <h3>Total Messages</h3>
+                <p>78,200</p>
+              </div>
+              <div class="kpi-card">
+                <h3>Flow Completion Rate</h3>
+                <p>68%</p>
+              </div>
+              <div class="kpi-card">
+                <h3>Bot Avg. CSAT</h3>
+                <p>4.3 / 5</p>
+              </div>
+              <div class="kpi-card">
+                <h3>Live Agent CSAT</h3>
+                <p>4.5 / 5</p>
+              </div>
+              <div class="kpi-card">
+                <h3>New Registrations</h3>
+                <p>321</p>
+              </div>
+            </div>
+        </div>
+
+        <div class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-sitemap"></i> Channel Utilization</h2>
+                <button class="export-btn" onclick="exportSectionCSV('channelTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-table-container">
+                <div class="chart-container">
+                    <canvas id="channelChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table id="channelTable">
+                        <thead><tr><th>Channel</th><th>Users</th><th>User Language</th><th>Sessions</th><th>Session Language</th><th>% of Users</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-envelope-open-text"></i> Messages by Channel</h2>
+                <button class="export-btn" onclick="exportSectionCSV('messageTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-table-container">
+                <div class="chart-container">
+                    <canvas id="messageChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table id="messageTable">
+                        <thead><tr><th>Channel</th><th>Total Msgs</th><th>EN Msgs</th><th>AR Msgs</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="performance" class="content">
+        <div class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-list-check"></i> Basic Flow Metrics</h2>
+                <button class="export-btn" onclick="exportSectionCSV('flowMetricsTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="flowBarChart"></canvas>
+            </div>
+            <div style="width:100%; overflow-x: auto;">
+                <table id="flowMetricsTable">
+                    <thead>
+                        <tr><th>Flow</th><th>Started</th><th>Completed</th><th>Completion %</th><th>Drop-off %</th><th>Retention</th><th>Unique Users</th><th>Peak Hours</th><th>Language</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="pagination-controls">
+                <button id="flowMetricsTablePrevBtn" class="pagination-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="flowMetricsTablePageInfo"></span>
+                <button id="flowMetricsTableNextBtn" class="pagination-btn"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-headset"></i> Live Agent Escalations</h2>
+                <button class="export-btn" onclick="exportSectionCSV('escalationTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-table-container">
+                <div class="chart-container" style="flex-basis: 40%;">
+                    <canvas id="escalationChart"></canvas>
+                </div>
+                <div class="table-container" style="flex-basis: 60%;">
+                    <table id="escalationTable">
+                        <thead><tr><th>Channel</th><th>Unique Users</th><th>No. of Chats</th><th>Rate %</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-user-plus"></i> New Customer Registrations</h2>
+                <button class="export-btn" onclick="exportSectionCSV('registrationTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-table-container">
+                <div class="chart-container" style="flex-basis: 40%;">
+                    <canvas id="registrationChart"></canvas>
+                </div>
+                <div class="table-container" style="flex-basis: 60%;">
+                    <table id="registrationTable">
+                        <thead><tr><th>Channel</th><th>Users</th><th>% of Regs</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customer" class="content">
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-car"></i> Engagement per Brand (Across All Flows)</h2>
+                <button class="export-btn" onclick="exportSectionCSV('brandTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="brandChart"></canvas>
+            </div>
+            <table id="brandTable">
+                <thead><tr><th>Brand</th><th>Users</th><th>Utilization %</th><th>Language</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-code-branch"></i> Brand Utilization Per Flow</h2>
+                <button class="export-btn" onclick="exportSectionCSV('brandPerFlowTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <table id="brandPerFlowTable">
+                <thead><tr><th>Flow</th><th>Brand</th><th>Users</th><th>Utilization %</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-bullhorn"></i> Campaign Analytics</h2>
+                <button class="export-btn" onclick="exportSectionCSV('campaignTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="campaignChart"></canvas>
+            </div>
+            <table id="campaignTable">
+                <thead><tr><th>Campaign</th><th>Targeted</th><th>Delivered</th><th>Read</th><th>Delivery %</th><th>Quick Reply Clicks</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="quality" class="content">
+        <div class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-robot"></i> LLM Interaction & Summary</h2>
+                <button class="export-btn" onclick="exportSectionCSV('llmTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="llmChart"></canvas>
+            </div>
+            <table id="llmTable">
+                <thead><tr><th>Channel</th><th>Users</th><th>Messages</th><th>LLM Msgs</th><th>Language</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <table id="llmSummaryTable">
+                <thead><tr><th>Total Interactions</th><th>Total LLM Messages Sent</th><th>Total Unique Users</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-star"></i> Bot Rating</h2>
+                <button class="export-btn" onclick="exportSectionCSV('botRatingTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-table-container">
+                <div class="chart-container">
+                    <canvas id="botRatingChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table id="botRatingTable">
+                        <thead><tr><th>Channel</th><th>Users Rated</th><th>Feedback Users</th><th>Avg. Rating</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-headset"></i> Live Agent Interaction</h2>
+                <button class="export-btn" onclick="exportSectionCSV('agentTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="agentChart"></canvas>
+            </div>
+            <table id="agentTable">
+                <thead><tr><th>Channel</th><th>Connected</th><th>Missed</th><th>Language</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-paperclip"></i> Live Agent Attachments Sent</h2>
+                <button class="export-btn" onclick="exportSectionCSV('attachmentsTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="attachmentsChart"></canvas>
+            </div>
+            <table id="attachmentsTable">
+                <thead><tr><th>Channel</th><th>User Attachments</th><th>Agent Attachments</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-triangle-exclamation"></i> Error Tracking</h2>
+                <button class="export-btn" onclick="exportSectionCSV('errorTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <table id="errorHeatmapTable">
+                  <thead><tr><th>Channel</th><th>Error Count</th><th>Error %</th><th>Error Type</th></tr></thead>
+                  <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-star-half-stroke"></i> Live Agent Survey & Feedback Analytics</h2>
+                <button class="export-btn" onclick="exportSectionCSV('feedbackTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+                 <div class="chart-table-container">
+                    <div class="chart-container">
+                        <canvas id="surveyFeedbackChart"></canvas>
+                    </div>
+                    <div class="table-container">
+                        <table id="feedbackTable">
+                            <thead><tr><th>Metric</th><th>Count</th><th>Language</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- NEW INSIGHTS TAB -->
+    <div id="insights" class="content">
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-chart-pie"></i> Sessions Breakdown</h2>
+                <button class="export-btn" onclick="exportSectionCSV('sessionsBreakdownTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="sessionsBreakdownChart"></canvas>
+            </div>
+            <div class="table-container" id="sessionsBreakdownTableContainer">
+                <table id="sessionsBreakdownTable">
+                    <thead><tr><th>Platform</th><th>Sessions</th><th>Language (EN/AR)</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-tachometer-alt"></i> Session Metrics</h2>
+                <button class="export-btn" onclick="exportSectionCSV('sessionMetrics')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="kpi-grid">
+                <div class="insight-kpi">
+                    <span class="insight-kpi-title">Total Sessions</span>
+                    <strong class="insight-kpi-value">106,439</strong>
+                    <span class="lang-breakdown">EN: 85,151, AR: 21,288</span>
+                </div>
+                <div class="insight-kpi">
+                    <span class="insight-kpi-title">Completed Sessions</span>
+                    <strong class="insight-kpi-value">89,008</strong>
+                    <span class="lang-breakdown">EN: 71,206, AR: 17,802</span>
+                </div>
+                <div class="insight-kpi">
+                    <span class="insight-kpi-title">Abandoned Sessions</span>
+                    <strong class="insight-kpi-value">17,431</strong>
+                    <span class="lang-breakdown">EN: 13,945, AR: 3,486</span>
+                </div>
+                 <div class="insight-kpi">
+                    <span class="insight-kpi-title">Avg Session Duration</span>
+                    <strong class="insight-kpi-value">00:18:32</strong>
+                    <span class="lang-breakdown">EN: 00:19:12, AR: 00:15:45</span>
+                </div>
+                <div class="insight-kpi">
+                    <span class="insight-kpi-title">Missed Utterances</span>
+                    <strong class="insight-kpi-value">47,564</strong>
+                    <span class="lang-breakdown">EN: 38,051, AR: 9,513</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="sentiments-section" class="section grid-span-4">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-face-smile"></i> Sentiments</h2>
+                <button class="export-btn" onclick="exportSectionCSV('sentiments')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="sentiment-content-wrapper">
+                <div class="total-sentiment-container">
+                    <strong class="insight-kpi-value">312,053</strong>
+                    <span class="lang-breakdown">EN: 249,642</span>
+                    <span class="lang-breakdown">AR: 62,411</span>
+                </div>
+                <div class="insight-kpi-sentiment-breakdown">
+                    <div class="sentiment" style="color: #28a745;">2,346 <span>Happy</span></div>
+                    <div class="sentiment" style="color: #6c757d;">295,971 <span>Neutral</span></div>
+                    <div class="sentiment" style="color: #dc3545;">13,736 <span>Unhappy</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-book"></i> General Insights</h2>
+                <button class="export-btn" onclick="exportSectionCSV('generalInsightsTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <ul id="generalInsightsTable" class="insight-table"></ul>
+        </div>
+        
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-users"></i> Concurrent Sessions</h2>
+                <button class="export-btn" onclick="exportSectionCSV('concurrentSessionsTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div id="concurrentSessionsContent"></div>
+        </div>
+        
+        <div class="section grid-span-4" style="padding: 0; background: none; box-shadow: none; border: none;">
+            <div class="equal-charts-grid">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-language"></i> Average Session Language</h2>
+                        <button class="export-btn" onclick="exportSectionCSV('avgSessionLanguage')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="avgSessionLanguageChart"></canvas>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-comments"></i> Medium of Sessions</h2>
+                        <button class="export-btn" onclick="exportSectionCSV('mediumOfSessions')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="mediumOfSessionsChart"></canvas>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-robot"></i> Bot Failure Rate</h2>
+                        <button class="export-btn" onclick="exportSectionCSV('botFailureRate')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="botFailureRateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-lightbulb"></i> Top Intents/Questions Asked</h2>
+                <button class="export-btn" onclick="exportSectionCSV('topIntentsTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="topIntentsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section grid-span-2">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-question-circle"></i> Top Unrecognized Questions Asked</h2>
+                <button class="export-btn" onclick="exportSectionCSV('topUnrecognizedTable')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="topUnrecognizedChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// --- Tab switching logic ---
+function showTab(event, id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+    
+    const targetId = id || 'overview';
+    document.getElementById(targetId).classList.add('active');
+
+    if (event) {
+        event.currentTarget.classList.add('active');
+    } else {
+        document.querySelector('.tab[onclick*="overview"]').classList.add('active');
+    }
+}
+
+// --- Dummy Data ---
+const channels=[
+    {name:"WhatsApp",users:4000,sessions:5000,messages:3200, en_msgs: 2800, ar_msgs: 400, users_lang: {en: 3200, ar: 800}, sessions_lang: {en: 4000, ar: 1000}},
+    {name:"Web",users:3000,sessions:4000,messages:2100, en_msgs: 1800, ar_msgs: 300, users_lang: {en: 2500, ar: 500}, sessions_lang: {en: 3500, ar: 500}},
+    {name:"Mobile",users:2000,sessions:2500,messages:1000, en_msgs: 900, ar_msgs: 100, users_lang: {en: 1800, ar: 200}, sessions_lang: {en: 2200, ar: 300}},
+    {name:"Instagram",users:1000,sessions:1200,messages:950, en_msgs: 850, ar_msgs: 100, users_lang: {en: 900, ar: 100}, sessions_lang: {en: 1100, ar: 100}},
+    {name:"Facebook",users:500,sessions:600,messages:570, en_msgs: 500, ar_msgs: 70, users_lang: {en: 450, ar: 50}, sessions_lang: {en: 550, ar: 50}}
+];
+const allFlows=[
+    {name:"Test Drive Booking", channel: "WhatsApp", started:67,completed:45, retention: 30, unique: 60, peakHours: '12-4PM', languages: {EN: 40, AR: 20}},
+    {name:"Check Balance", channel: "WhatsApp", started:150,completed:140, retention: 120, unique: 145, peakHours: '10AM-2PM', languages: {EN: 100, AR: 40}},
+    {name:"Track Order", channel: "WhatsApp", started:95,completed:90, retention: 80, unique: 92, peakHours: '4-8PM', languages: {EN: 70, AR: 20}},
+    {name:"Store Locator", channel: "WhatsApp", started:120,completed:115, retention: 100, unique: 118, peakHours: '12-6PM', languages: {EN: 90, AR: 25}},
+    {name:"Branch Request", channel: "Web", started:27,completed:20, retention: 15, unique: 25, peakHours: '8AM-12PM', languages: {EN: 15, AR: 10}},
+    {name:"Service Appointment", channel: "Web", started:80,completed:60, retention: 50, unique: 75, peakHours: '9AM-1PM', languages: {EN: 50, AR: 10}},
+    {name:"Contact Support", channel: "Web", started:45,completed:25, retention: 10, unique: 40, peakHours: '2-5PM', languages: {EN: 20, AR: 5}},
+    {name:"Product Info", channel: "Web", started:300,completed:250, retention: 200, unique: 280, peakHours: '11AM-4PM', languages: {EN: 200, AR: 50}},
+    {name:"Prepaid Upgrade", channel: "Mobile", started:50,completed:40, retention: 25, unique: 48, peakHours: '4-8PM', languages: {EN: 30, AR: 15}},
+    {name:"FAQ - General", channel: "Mobile", started:200,completed:180, retention: 150, unique: 190, peakHours: '10AM-3PM', languages: {EN: 150, AR: 30}},
+    {name:"Update Details", channel: "Mobile", started:110,completed:105, retention: 90, unique: 108, peakHours: '9AM-12PM', languages: {EN: 80, AR: 25}},
+];
+const escalations=channels.map(c=>({channel:c.name,escalated:Math.floor(c.users*.1), uniqueUsers: Math.floor(c.users * .08), chats: Math.floor(c.users * .12), languages: {en: Math.floor(c.users*.08), ar: Math.floor(c.users*.02)}}));
+const registrations=channels.map(c=>({channel:c.name,registered:c.name==="WhatsApp"?231:c.name==="Web"?85:c.name==="Instagram"?3:c.name==="Facebook"?2:0, languages: {en: Math.floor((c.name==="WhatsApp"?231:c.name==="Web"?85:c.name==="Instagram"?3:c.name==="Facebook"?2:0) * 0.9), ar: Math.floor((c.name==="WhatsApp"?231:c.name==="Web"?85:c.name==="Instagram"?3:c.name==="Facebook"?2:0) * 0.1)}}));
+const feedbackData = {
+    totalSurveys: { count: 120, en: 100, ar: 20 },
+    totalComments: { count: 42, en: 35, ar: 7 }
+};
+const brands=[
+    {brand:"Audi",users:22, languages: {en: 18, ar: 4}},
+    {brand:"VW",users:12, languages: {en: 10, ar: 2}},
+    {brand:"Porsche",users:4, languages: {en: 3, ar: 1}},
+    {brand:"Lamborghini",users:7, languages: {en: 6, ar: 1}},
+    {brand:"Bentley",users:1, languages: {en: 1, ar: 0}}
+];
+const brandsPerFlow=[{flow:"Test Drive Booking",brand:"Audi",users:22},{flow:"Test Drive Booking",brand:"VW",users:12},{flow:"Test Drive Booking",brand:"Lamborghini",users:7},{flow:"Test Drive Booking",brand:"Porsche",users:4},{flow:"Branch Request",brand:"Audi",users:8},{flow:"Branch Request",brand:"VW",users:4},{flow:"Branch Request",brand:"Lamborghini",users:1},{flow:"Branch Request",brand:"Porsche",users:7},{flow:"Branch Request",brand:"Bentley",users:1}];
+const campaigns=[{name:"Campaign A",targeted:1e3,delivered:920,read:500,quickReplies:120},{name:"Campaign B",targeted:600,delivered:550,read:300,quickReplies:50},{name:"Campaign C",targeted:400,delivered:380,read:200,quickReplies:30}];
+const llm=channels.map(c=>({channel:c.name,users:Math.floor(c.users*.2),messages:Math.floor(c.sessions*.3), llmMessages: Math.floor(c.sessions*.1), languages: {en: Math.floor(c.users*.15), ar: Math.floor(c.users*.05)}}));
+const llmSummary={interactions:1200,messages:1100,uniqueUsers:900};
+const botRatings=channels.map(c=>({channel:c.name,usersRated:Math.floor(c.users*.05), feedbackUsers: Math.floor(c.users*.02), avg:(Math.random()*1+4).toFixed(1), languages: {en: Math.floor(c.users*.04), ar: Math.floor(c.users*.01)}}));
+const errors=[
+    {channel:"WhatsApp",count:40,rate:1,type:"Generic"},
+    {channel:"Web",count:25,rate:.8,type:"Maintenance"},
+    {channel:"Mobile",count:15,rate:.7,type:"Generic"},
+    {channel:"Instagram",count:10,rate:.5,type:"Other"},
+    {channel:"Facebook",count:5,rate:.3,type:"Generic"}
+];
+const agents=channels.map(c=>({channel:c.name,connected:Math.floor(c.users*.07),missed:Math.floor(c.users*.01),userAttachments:Math.floor(Math.random()*20+5),agentAttachments:Math.floor(Math.random()*10+2), languages: {en: Math.floor(c.users*.06), ar: Math.floor(c.users*.01)}}));
+
+// --- NEW DUMMY DATA FOR INSIGHTS TAB ---
+const sessionsBreakdown = [{platform: 'Web', sessions: 13185, en: 11000, ar: 2185}, {platform: 'iOS', sessions: 37653, en: 30000, ar: 7653}, {platform: 'Android', sessions: 26710, en: 22000, ar: 4710}, {platform: 'WhatsApp', sessions: 28887, en: 22151, ar: 6736}];
+const topIntentsData = [
+    {intent: 'greet', count: 175000}, {intent: 'otp', count: 140000}, {intent: 'troubleshoot', count: 100000},
+    {intent: 'live-agent', count: 95000}, {intent: 'main-menu', count: 60000}, {intent: 'live-agent-rating', count: 30000},
+    {intent: 'manage-bundles', count: 25000}, {intent: 'home-service', count: 24000}, {intent: 'chatbot-rating', count: 15000},
+    {intent: 'explore-our-product', count: 14000}
+];
+const topUnrecognizedData = [
+    {intent: 'live-agent', count: 28000}, {intent: 'FallbackIntent', count: 16000}, {intent: 'otp', count: 2000},
+    {intent: 'live-agent-rating', count: 800}, {intent: 'cancel-general', count: 700}, {intent: 'greet', count: 600},
+    {intent: 'manage-bundles', count: 500}, {intent: 'explore-our-product', count: 400}, {intent: 'change-plan', count: 300},
+    {intent: 'payment-recharge-now', count: 200}
+];
+
+
+// --- Helper function for populating tables ---
+function populateTable(tableId, data, columns, grouped = false) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    if (grouped) {
+        const groupedData = data.reduce((acc, flow) => {
+            if (!acc[flow.channel]) {
+                acc[flow.channel] = [];
+            }
+            acc[flow.channel].push(flow);
+            return acc;
+        }, {});
+
+        for (const channel in groupedData) {
+            const headerRow = document.createElement('tr');
+            headerRow.className = 'channel-header-row';
+            const headerCell = document.createElement('td');
+            headerCell.colSpan = columns.length - 1; // Adjusted for the removed channel column
+            headerCell.innerHTML = `<strong>${channel}</strong>`;
+            headerRow.appendChild(headerCell);
+            tbody.appendChild(headerRow);
+
+            groupedData[channel].forEach(item => {
+                const row = document.createElement('tr');
+                columns.forEach(column => {
+                    if (column.data === 'channel') return; // Skip channel cell in grouped view
+                    const cell = document.createElement('td');
+                    const value = typeof column.data === 'function' ? column.data(item) : item[column.data];
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+        }
+    } else {
+         data.forEach(item => {
+            const row = document.createElement('tr');
+            columns.forEach(column => {
+                const cell = document.createElement('td');
+                const value = typeof column.data === 'function' ? column.data(item) : item[column.data];
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+    }
+}
+
+// Helper to populate simple list-based tables
+function populateInsightList(elementId, data) {
+    const ul = document.getElementById(elementId);
+    if (!ul) return;
+    ul.innerHTML = '';
+    data.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `${item.label} <span class="value">${item.value} <span class="lang-breakdown" style="display: inline; font-size: 11px;">(EN: ${item.en}, AR: ${item.ar})</span></span>`;
+        ul.appendChild(li);
+    });
+}
+
+
+// --- Main script execution ---
+document.addEventListener('DOMContentLoaded', () => {
+    
+    showTab(); // Set initial tab
+
+    const langFormatter = item => `Users: EN:${item.users_lang.en}, AR:${item.users_lang.ar} | Sessions: EN:${item.sessions_lang.en}, AR:${item.sessions_lang.ar}`;
+
+    // Populate all tables
+    populateTable('channelTable', channels, [{ data: 'name' }, { data: 'users' }, { data: 'users_lang', data: item => `EN:${item.users_lang.en}, AR:${item.users_lang.ar}` }, { data: 'sessions' }, { data: 'sessions_lang', data: item => `EN:${item.sessions_lang.en}, AR:${item.sessions_lang.ar}` }, { data: item => `${(item.users / 10500 * 100).toFixed(1)}%` }]);
+    populateTable('messageTable', channels, [{data: 'name'}, {data: 'messages'}, {data: 'en_msgs'}, {data: 'ar_msgs'}]);
+    
+    populateTable('escalationTable', escalations, [{ data: 'channel' }, {data: 'uniqueUsers'}, {data: 'chats'},{ data: item => `${(item.escalated / channels.find(c => c.name === item.channel).users * 100).toFixed(1)}%` }]);
+    populateTable('registrationTable', registrations, [{ data: 'channel' }, { data: 'registered' },{ data: item => `${(item.registered / 321 * 100).toFixed(1)}%` }]);
+    const feedbackTableData = [
+        {metric: 'Total Survey Responses', ...feedbackData.totalSurveys},
+        {metric: 'Feedback Comments', ...feedbackData.totalComments}
+    ];
+    populateTable('feedbackTable', feedbackTableData, [{data: 'metric'}, {data: 'count'}, {data: item => `EN: ${item.en}, AR: ${item.ar}`}]);
+    populateTable('brandTable', brands, [{ data: 'brand' }, { data: 'users' },{ data: item => `${(item.users / brands.reduce((acc, v) => acc + v.users, 0) * 100).toFixed(1)}%` }, {data: item => `EN: ${item.languages.en}, AR: ${item.languages.ar}`}]);
+    populateTable('brandPerFlowTable', brandsPerFlow, [{ data: 'flow' }, { data: 'brand' }, { data: 'users' },{ data: item => `${(item.users / allFlows.find(f => f.name === item.flow).started * 100).toFixed(1)}%` }]);
+    populateTable('campaignTable', campaigns, [{ data: 'name' }, { data: 'targeted' }, { data: 'delivered' }, { data: 'read' },{ data: item => `${(item.delivered / item.targeted * 100).toFixed(1)}%` },{ data: 'quickReplies' }]);
+    populateTable('llmTable', llm, [{ data: 'channel' }, { data: 'users' }, { data: 'messages' }, {data: 'llmMessages'}, {data: item => `EN: ${item.languages.en}, AR: ${item.languages.ar}`}]);
+    const llmSummaryTbody = document.querySelector('#llmSummaryTable tbody');
+    llmSummaryTbody.innerHTML = `<tr><td>${llmSummary.interactions}</td><td>${llmSummary.messages}</td><td>${llmSummary.uniqueUsers}</td></tr>`;
+    populateTable('botRatingTable', botRatings, [{ data: 'channel' }, { data: 'usersRated' }, {data: 'feedbackUsers'}, { data: 'avg' }]);
+    
+    const errorHeatmapTbody = document.querySelector('#errorHeatmapTable tbody');
+    errors.forEach(e => {
+        const row = document.createElement('tr');
+        const maxErrors = Math.max(...errors.map(err => err.count));
+        const opacity = e.count / maxErrors;
+        row.innerHTML = `
+            <td>${e.channel}</td>
+            <td style="background-color: rgba(220, 53, 69, ${opacity}); color: white; font-weight: 500;">${e.count}</td>
+            <td>${e.rate}%</td>
+            <td>${e.type}</td>
+        `;
+        errorHeatmapTbody.appendChild(row);
+    });
+    
+    populateTable('agentTable', agents, [{ data: 'channel' }, { data: 'connected' }, { data: 'missed' }, {data: item => `EN: ${item.languages.en}, AR: ${item.languages.ar}`}]);
+    populateTable('attachmentsTable', agents, [{ data: 'channel' }, { data: 'userAttachments' }, { data: 'agentAttachments' }]);
+    populateTable('sessionsBreakdownTable', sessionsBreakdown, [{data: 'platform'}, {data: 'sessions'}, {data: item => `EN: ${item.en}, AR: ${item.ar}`}]);
+    
+    // Populate Insights Tab lists
+    populateInsightList('generalInsightsTable', [
+        {label: 'Total Messages from Sessions', value: '764,749', en: '611,799', ar: '152,950'},
+        {label: 'Avg. Messages Per Session', value: '7', en: '7.2', ar: '6.8'},
+        {label: 'Repeat Customers', value: '0', en: '0', ar: '0'},
+        {label: '% of Repeat Customers', value: '0%', en: '0%', ar: '0%'}
+    ]);
+    
+    document.getElementById('concurrentSessionsContent').innerHTML = `<div class="concurrent-row"><div class="concurrent-left"><span>Bot Sessions</span><strong>106,439</strong><span class="lang-breakdown">EN: 85,151, AR: 21,288</span><div class="concurrent-icons"><i class="fa-brands fa-whatsapp"></i><i class="fa-brands fa-chrome"></i><i class="fa-brands fa-apple"></i><i class="fa-brands fa-android"></i></div></div><div class="concurrent-right"><ul class="insight-table sub-list"><li>WhatsApp <span class="value">28,887</span></li><li>Web <span class="value">13,189</span></li><li>iOS <span class="value">37,653</span></li><li>Android <span class="value">26,710</span></li></ul></div></div><div class="concurrent-row"><div class="concurrent-left"><span>Live Chat</span><strong>22,590</strong><span class="lang-breakdown">EN: 18,000, AR: 4,590</span><div class="concurrent-icons"><i class="fa-brands fa-whatsapp"></i><i class="fa-brands fa-chrome"></i><i class="fa-brands fa-apple"></i><i class="fa-brands fa-android"></i></div></div><div class="concurrent-right"><ul class="insight-table sub-list"><li>WhatsApp <span class="value">9,647</span></li><li>Web <span class="value">1</span></li><li>iOS <span class="value">0</span></li><li>Android <span class="value">0</span></li></ul></div></div>`;
+
+     populateInsightList('avgResponseTime', [
+        {label: 'Avg. Response Time (General)', value: '00:00:02', en: '00:00:02', ar: '00:00:01'},
+        {label: 'Avg. Response Time (Chatbot)', value: '00:00:02', en: '00:00:02', ar: '00:00:01'},
+        {label: 'Avg. Response Time (Live Agent)', value: '00:00:00', en: '00:00:00', ar: '00:00:00'}
+    ]);
+    
+    initializeCharts();
+    initializeRowPagination('flowMetricsTable', allFlows, 4, [
+        {data: 'channel'}, {data: 'name'}, {data: 'started'}, {data: 'completed'}, 
+        {data: item => `${((item.completed / item.started) * 100).toFixed(1)}%`},
+        {data: item => `${(100 - (item.completed / item.started * 100)).toFixed(1)}%`},
+        {data: 'retention'}, {data: 'unique'}, {data: 'peakHours'}, 
+        {data: item => `EN:${item.languages.EN}, AR:${item.languages.AR}`}
+    ]);
+});
+
+// --- ✨ Chart Initialization ---
+function initializeCharts(){
+    const chartColors = ['#2980B9', '#F39C12', '#16A085', '#C0392B', '#8E44AD'];
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Poppins' } } }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    font: { family: 'Poppins' },
+                    autoSkip: false,
+                    maxRotation: 45,
+                    minRotation: 0
+                }
+            },
+            y: { ticks: { font: { family: 'Poppins' } } }
+        }
+    };
+    const horizontalBarOptions = {
+        ...commonOptions, 
+        indexAxis:'y', 
+        scales: {
+            x: {beginAtZero: true, ticks: { font: { family: 'Poppins' }}}, 
+            y: {
+                ticks: {
+                    font: {size: 10, family: 'Poppins'},
+                    autoSkip: false,
+                    maxRotation: 45,
+                    minRotation: 0
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    };
+     const lollipopChartOptions = {
+        ...horizontalBarOptions,
+        elements: {
+            bar: {
+                borderWidth: 2,
+                borderRadius: 0,
+            }
+        }
+    };
+
+    // Overview Tab
+    new Chart(document.getElementById('channelChart'),{type:'doughnut',data:{labels:channels.map(c=>c.name),datasets:[{data:channels.map(c=>c.users),backgroundColor:chartColors}]},options:{...commonOptions, plugins: { legend: { position: 'right'}}}});
+    new Chart(document.getElementById('messageChart'),{type:'bar',data:{labels:channels.map(c=>c.name),datasets:[{label:'Messages',data:channels.map(c=>c.messages),backgroundColor:chartColors[0]}]},options:{...commonOptions}});
+    
+    // Performance Tab
+    new Chart(document.getElementById('flowBarChart'),{type:'bar',data:{labels:allFlows.slice(0,5).map(f=>f.name), datasets:[{label:'Started',data:allFlows.slice(0,5).map(f=>f.started),backgroundColor:chartColors[0]},{label:'Completed',data:allFlows.slice(0,5).map(f=>f.completed),backgroundColor:chartColors[1]}]},options:{...commonOptions}});
+    new Chart(document.getElementById('escalationChart'),{type:'doughnut',data:{labels:escalations.map(e=>e.channel),datasets:[{label:'Escalations',data:escalations.map(e=>e.uniqueUsers),backgroundColor:chartColors}]},options:{...commonOptions}});
+    new Chart(document.getElementById('registrationChart'),{type:'pie',data:{labels:registrations.map(r=>r.channel),datasets:[{label:'Registrations',data:registrations.map(r=>r.registered),backgroundColor:chartColors}]},options:{...commonOptions}});
+    
+    // Customer Tab
+    new Chart(document.getElementById('brandChart'),{type:'pie',data:{labels:brands.map(b=>b.brand),datasets:[{data:brands.map(b=>b.users),backgroundColor:chartColors}]},options:{...commonOptions}});
+    new Chart(document.getElementById('campaignChart'),{type:'bar',data:{labels:campaigns.map(c=>c.name),datasets:[{label:'Targeted',data:campaigns.map(c=>c.targeted),backgroundColor:chartColors[0]},{label:'Delivered',data:campaigns.map(c=>c.delivered),backgroundColor:chartColors[1]},{label:'Read',data:campaigns.map(c=>c.read),backgroundColor:chartColors[2]}]},options:{...commonOptions}});
+    
+    // Quality Tab
+    new Chart(document.getElementById('llmChart'),{type:'bar',data:{labels:llm.map(l=>l.channel),datasets:[{label:'Users',data:llm.map(l=>l.users),backgroundColor:chartColors[0]},{label:'Messages',data:llm.map(l=>l.messages),backgroundColor:chartColors[2]}]},options:{...commonOptions}});
+    new Chart(document.getElementById('botRatingChart'),{type:'doughnut',data:{labels:botRatings.map(b=>b.channel),datasets:[{label:'Users Rated',data:botRatings.map(b=>b.usersRated),backgroundColor:chartColors}]},options:{...commonOptions}});
+    new Chart(document.getElementById('agentChart'),{type:'bar',data:{labels:agents.map(a=>a.channel),datasets:[{label:'Connected',data:agents.map(a=>a.connected),backgroundColor:chartColors[0]}, {label:'Missed',data:agents.map(a=>a.missed),backgroundColor:chartColors[2]}]},options:{...commonOptions, scales: {x: {stacked: true}, y: {stacked: true}}}});
+    new Chart(document.getElementById('attachmentsChart'),{type:'bar',data:{labels:agents.map(a=>a.channel),datasets:[{label:'User Attachments',data:agents.map(a=>a.userAttachments),backgroundColor:chartColors[0]},{label:'Agent Attachments',data:agents.map(a=>a.agentAttachments),backgroundColor:chartColors[2]}]},options:{...commonOptions, scales: {x: {stacked: true}, y: {stacked: true}}}});
+    new Chart(document.getElementById('surveyFeedbackChart'),{type:'bar',data:{labels:['Total Survey Responses', 'Feedback Comments'],datasets:[{label:'Count',data:[feedbackData.totalSurveys.count, feedbackData.totalComments.count],backgroundColor:[chartColors[0], chartColors[2]]}]},options:{...commonOptions}});
+
+
+    // Insights Tab
+    new Chart(document.getElementById('sessionsBreakdownChart'),{type:'doughnut',data:{labels:sessionsBreakdown.map(s=>s.platform),datasets:[{data:sessionsBreakdown.map(s=>s.sessions),backgroundColor:chartColors}]},options:{...commonOptions, plugins: { legend: { position: 'right'}}}});
+    new Chart(document.getElementById('avgSessionLanguageChart'),{type:'bar',data:{labels:['English','Arabic','Hindi'],datasets:[{label:'% Usage',data:[89,11,0],backgroundColor:chartColors[0]}]},options:{...commonOptions, indexAxis:'y', scales: {x: {beginAtZero: true, max: 100}, y: {ticks: {font: {size: 10}}}}}});
+    new Chart(document.getElementById('mediumOfSessionsChart'),{type:'doughnut',data:{labels:['Text','Voice'],datasets:[{data:[764239, 510],backgroundColor:[chartColors[1], chartColors[4]]}]},options:{...commonOptions, plugins: { legend: { position: 'right'}}}});
+    new Chart(document.getElementById('botFailureRateChart'),{type:'bar',data:{labels:['Recognized Intents','Unrecognized Intents'],datasets:[{label:'% Rate',data:[94,6],backgroundColor:[chartColors[0], chartColors[3]]}]},options:{...commonOptions, indexAxis:'y', scales: {x: {beginAtZero: true, max: 100}, y: {ticks: {font: {size: 10}}}}}});
+    
+    // NEW INSIGHTS CHARTS
+    new Chart(document.getElementById('topIntentsChart'),{type:'bar',data:{labels:topIntentsData.map(d=>d.intent),datasets:[{label:'Count',data:topIntentsData.map(d=>d.count),backgroundColor:chartColors[1]}]},options:lollipopChartOptions});
+    new Chart(document.getElementById('topUnrecognizedChart'),{type:'bar',data:{labels:topUnrecognizedData.map(d=>d.intent),datasets:[{label:'Count',data:topUnrecognizedData.map(d=>d.count),backgroundColor:chartColors[2]}]},options:lollipopChartOptions});
+}
+
+function initializeRowPagination(tableId, fullData, pageSize, columns) {
+    const table = document.getElementById(tableId);
+    const prevBtn = document.getElementById(tableId + 'PrevBtn');
+    const nextBtn = document.getElementById(tableId + 'NextBtn');
+    const pageInfo = document.getElementById(tableId + 'PageInfo');
+    
+    let currentPage = 0;
+    const totalPages = Math.ceil(fullData.length / pageSize);
+
+    function renderTablePage() {
+        const start = currentPage * pageSize;
+        const end = start + pageSize;
+        const pageData = fullData.slice(start, end);
+        
+        populateTable(tableId, pageData, columns, true);
+        
+        pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 0;
+        nextBtn.disabled = currentPage >= totalPages - 1;
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if(currentPage > 0) {
+            currentPage--;
+            renderTablePage();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if(currentPage < totalPages - 1) {
+            currentPage++;
+            renderTablePage();
+        }
+    });
+
+    renderTablePage(); // Initial render
+}
+
+
+// Dummy Export Functions
+function exportSectionCSV(sectionId){alert(`CSV export triggered for ${sectionId}`);}
+function exportCSV(){alert('Global CSV export triggered');}
+function exportPDF(){alert('Global PDF export triggered');}
+</script>
+
+</body>
+</html>
+
+
